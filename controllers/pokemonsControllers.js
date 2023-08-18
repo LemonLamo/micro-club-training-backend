@@ -52,9 +52,51 @@ const addNewPokemon = async (req, res) => {
   }
 };
 
-const deletePokemon = async (req, res) => {};
+const deletePokemon = async (req, res) => {
+  try{
+    const id = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ message: "This Pokemon does not exist", data: {} });
+    }
+    const pokemon = await Pokemon.deleteOne({_id : id});
+    if (!pokemon) {
+      return res
+        .status(404)
+        .json({ message: "No such pokemon", data: {} });
+    }
+    return res
+      .status(200)
+      .json({ message: "Data deleted succesfully" });
+  } catch (error) {
+    console.log("error", error.message);
+    return res.status(500).json({ message: "Internal server error", data: {} });
+  }
+};
 
-const updatePokemon = async (req, res) => {};
+const updatePokemon = async (req, res) => {
+  try{
+    const id = req.params.id;
+    const update = req.body;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(404).json({ message: "No such a pokemon", data: {} });
+    }
+    
+    const pokemon = await Pokemon.findByIdAndUpdate({_id : id}, update);
+    // we have to check again if the pokemon did not get deleted while awaiting for a db response
+    if (!pokemon) {
+      return res
+        .status(404)
+        .json({ message: "No such pokemon", data: {} });
+    }
+    return res
+      .status(200)
+      .json({ message: "Data updated succesfully", data: pokemon });
+    
+  }catch(error){
+    console.log("error", error.message);
+    return res.status(500).json({ message: "Internal server error", data: {} });
+  }
+};
 
 export default {
   getAllPokemons,
